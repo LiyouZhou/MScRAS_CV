@@ -1,0 +1,297 @@
+\documentclass{report}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{biblatex} %Imports biblatex package
+\usepackage{hyperref} % Required for adding links and customizing them
+\usepackage[toc,page]{appendix}
+\usepackage{subcaption}
+\usepackage{listings}
+\lstset{
+  breaklines=true,
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=single,
+}
+\usepackage{array}
+
+\newenvironment{conditions}
+  {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
+  {\end{tabular}\par\vspace{\belowdisplayskip}}
+
+\setlength{\abovecaptionskip}{5pt}
+
+\graphicspath{{./figures/}}
+\addbibresource{CV.bib} %Import the bibliography file
+
+\title{Computer Vision Coursework Report}
+\author{Liyou Zhou}
+
+\begin{document}
+\maketitle
+
+
+\chapter{Task 1: Image Segmentation and Detection}
+
+\section{Segmentation Pipeline}
+
+\subsection{Color Mask}
+
+The tennis ball is of a bright yellow color, which is unique in the image. Therefore, this information can be used to segment the tennis ball. The image is first transformed into HSV space. The color is expressed solely by the hue channel, tight threshold can be applied on the hue channel but allow variation in the saturation and value to achieve lighting invariance.
+
+After thresholding, there are still some noise. Opening and closing are applied to remove the noise and fill the gaps. Finally a connected component analysis is applied and only the largest connected component is returned as the mask.
+
+Fig. \ref{fig:color_mask} shows the result of the color mask over several frames. It can be seen that it segments the tennis ball very well.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{yellow_ball_mask_seq.png}
+    \caption{Color mask applied to several frames.}
+    \label{fig:color_mask}
+\end{figure}
+
+\subsection{Edge Mask}
+
+The edge mask is obtained by first applying the Canny edge detector to the image. The edge detected is shown in Fig. \ref{fig:edge_mask}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{edge_detection.png}
+    \caption{Canny edge detector applied to one of the frames}
+    \label{fig:edge_mask}
+\end{figure}
+
+Many iterations of closing are applied to close the gaps and many iterations of opening is used to remove noise. The result is shown in Fig. \ref{fig:morph_mask}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{morph_mask.png}
+    \caption{Edge mask after closing and opening}
+    \label{fig:morph_mask}
+\end{figure}
+
+It can be seen the balls are well masked. But there is also large areas of false positives on the top half of the image. In the next section, a region of interest is devised to remove most of the false positive pixels.
+
+\subsection{Motion Mask}
+
+In the dataset images, only the balls are moving across the image while the rest of the image stay still. I use the difference of pixels in adjacent images to detect a region of interest just around the balls. The result is shown in Fig. \ref{fig:motion_mask}. I first calculate the absolute difference of pixel values in adjacent frames, then I use opening and closing to de-noise and fill gaps. The resultant mask is then dilated to allow for better coverage of the balls.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{motion_mask.png}
+    \caption{Motion mask applied to one of the frames}
+    \label{fig:motion_mask}
+\end{figure}
+
+\subsection{Combining Masks}
+
+The color mask and edge masked are "OR"ed together, the "AND"ed with the motion mask to produce the final mask. Some example segmented frames can be seen in Appendix~\ref{sec:app_task1}.
+
+\section{Evaluation and Discussion}
+
+Dice score is calculated to evaluate the segmentation. The mean dice score is 0.850 and standard deviation of 0.0891. Fig. \ref{fig:dice_score} shows the score for each frame and Fig. \ref{fig:dice_score_hist} shows the distribution of the scores.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{dice_score.png}
+    \caption{Dice score for each frame}
+    \label{fig:dice_score}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{dice_score_hist.png}
+    \caption{Histogram of dice scores}
+    \label{fig:dice_score_hist}
+\end{figure}
+
+\chapter*{Task 2: Feature Calculation}
+
+\section{Separating ball masks}
+
+In order to distinguish between ball types, it is necessary to separate the single ground truth segmentation mask into 3 different masks, one for each ball type.
+
+The following properties of the balls are exploited:
+
+\begin{itemize}
+    \item Tennis is always the smallest in the image.
+    \item Rugby is always the bottom most of the 3 balls.
+    \item Football is the one left after removing the other 2 balls.
+\end{itemize}
+
+\section{Shape Features}
+
+After obtaining the ground truth shape mask for each individual ball types, shape features (solidity, non-compactness, circularity, eccentricity) are calculated for each ball type and histogram of the feature values is plotted for each ball type in Fig.~\ref{fig:shape_features_hist}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{shape_features_hist.png}
+    \caption{Histogram different shape features}
+    \label{fig:shape_features_hist}
+\end{figure}
+
+\section{Texture Features}
+
+The normalized grey-level co-occurrence matrix in four orientations (0°, 45°, 90°, 135°) are calculated for the three ball types and for each r, g, b channels of the images. 3 texture features are then calculated for each of the co-occurrence matrices. The mean and range of the features across the 4 angles is calculated. A histogram is plotted for the mean and range of the features in each color channels. ASM features are produced in Fig~\ref{fig:texture_features} as it shows the most disparity between ball types. Plots for other color feature pairs are produced in Appendix~\ref{sed:app_task_2}.
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{r_ASM.png}
+    \label{fig:r_ASM}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{g_ASM.png}
+    \label{fig:g_ASM}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{b_ASM.png}
+    \label{fib:g_ASM}
+\end{figure}
+
+\section{Discussion}
+
+In shape features, the rugby ball is fairly distinct from the other 2, especially in circularity (low), eccentricity (high). But due to the change in lens distortion and perspective as the balls roll across the frame, there is a wide spread in the shape features for all ball types.
+
+In texture features, ASM is the most distinct feature between the ball types and in all color channels. In the R channel, The rugby ball has the lowest ASM, while the tennis ball has the highest. This is due to the tennis ball having an almost uniform texture compared to the other 2 balls. Due to the same reason, the rugby ball also has the highest contrast and correlation values. In the G and B channel, due to the color of the rugby being mostly in the R channels, the values for the features are wide-spread.
+
+For rugby shape features spear to be more informative while for the other 2 types of balls texture features are better.
+
+Football is the most difficult to distinguish as it is of a bright color and uniform texture, and is hence similar to the tennis in most of the descriptors. Rugby on the other hand is distinct as well as color.
+
+The Hue values of the ball patches in HSV color space could be a good feature to use in distinguishing between football and tennis as they differ significantly in the hue of the color.
+
+\chapter{Task 3: Object Tracking}
+
+Based on example shown in workshop 4, a Kalman filter is implemented in python. The code is shown in Appendix~\ref{sec:app_task3}.
+
+With the Q and R values provided in the task, the Kalman filter is applied to the noisy observations. Fig.~\ref{fig:kalman_filter_default_values} plots the filtered trajectory alongside the ground truth and the original observations. When compared to the ground truth, the root mean squared error (RMSE) is calculated according to Eq.~\ref{eq:rmse} to be is 5.87. The squared error is calculated for each ground truth point and the distribution is shown in Fig.~\ref{fig:kalman_filter_error_hist}. The standard deviation of the squared error is 24.7.
+
+\begin{equation}
+    RMSE = \sqrt{\frac{1}{N} \sum_{i=1}^{N} ((x_{i} - \hat{x}_{i})^2 + (y_{i} - \hat{y}_{i})^2)}
+    \label{eq:rmse}
+\end{equation}
+Where:
+\begin{conditions}
+ x_{i} y_{i}             & the ground truth coordinate values \\
+ \hat{x}_{i} \hat{y}_{i} & the filtered coordinate values \\
+ N                       & the number of points
+\end{conditions}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{kalman_filter_default_values.png}
+    \caption{Kalman filter applied to the noisy observations with default Q and R values.}
+    \label{fig:kalman_filter_default_values}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{kalman_filter_error_hist.png}
+    \caption{Kalman filter applied to the noisy observations with default Q and R values, Histogram of squared error when compared to ground truth.}
+    \label{fig:kalman_filter_error_hist}
+\end{figure}
+
+
+It can be seen the filtered trajectory track very close to the Noisy observations. Increasing the observation noise R will decrease the confidence in the observations and the filtered trajectory will be dragged less towards the observations at each iteration.
+
+
+\printbibliography
+
+\begin{appendices}
+
+\chapter{Task 1: Image Segmentation and Detection}\label{sec:app_task1}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_1.png}
+    \caption{Best dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_2.png}
+    \caption{2nd best dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_3.png}
+    \caption{3rd best dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_4.png}
+    \caption{4th best dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_5.png}
+    \caption{5th best dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_63.png}
+    \caption{Worst dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_62.png}
+    \caption{2nd worst dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_61.png}
+    \caption{3rd worst dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_60.png}
+    \caption{4th worst dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{best_dice_score_59.png}
+    \caption{5th worst dice score frame. Green circle indicates the ground truth segmentation mask.}
+\end{figure}
+
+\pagebreak
+
+\lstinputlisting[language=python]{../code/task1.py}
+
+\chapter{Task 2: Feature Calculation}\label{sec:app_task_2}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{r_contrast.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{r_correlation.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{g_contrast.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{g_correlation.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{b_contrast.png}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{b_correlation.png}
+\end{figure}
+
+\pagebreak
+
+\lstinputlisting[language=python]{../code/task2.py}
+
+\chapter{Task 3: Object Tracking} \label{sec:app_task3}
+
+\lstinputlisting[language=python]{../code/task3.py}
+
+\end{appendices}
+
+
+\end{document}
