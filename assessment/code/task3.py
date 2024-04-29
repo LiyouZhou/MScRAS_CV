@@ -15,10 +15,10 @@ def kalmanPredict(x, P, F, Q):
     """
     Kalman filter predict step.
     """
-    xp = F @ x
     # predict state
-    Pp = F @ P @ F.transpose() + Q
+    xp = F @ x
     # predict state covariance
+    Pp = F @ P @ F.transpose() + Q
     return xp, Pp
 
 
@@ -27,18 +27,17 @@ def kalmanUpdate(x, P, H, R, z):
     Kalman filter update step.
     """
     # print(H.shape, P.shape, R.shape)
-    S = H @ P @ H.transpose() + R
     # innovation covariance
-    K = P @ H.transpose() @ np.linalg.inv(S)
+    S = H @ P @ H.transpose() + R
     # Kalman gain
-    zp = H @ x
+    K = P @ H.transpose() @ np.linalg.inv(S)
     # predicted observation
+    zp = H @ x
 
     gate = (z - zp).transpose() @ np.linalg.inv(S) @ (z - zp)
 
     # if gate > 9.21:
     if gate > 10000000:
-        plt.plot(z[0], z[1], "ro", label="excluded observation")
         print("Observation outside validation gate")
         xe = x
         Pe = P
@@ -59,22 +58,26 @@ def kalmanTracking(z, dt=0.5):
     N = len(z[0])
 
     # fmt: off
+    # CV motion model
     F = np.array([
         [1,dt,0,0],
         [0,1,0,0],
         [0,0,1,dt],
-        [0,0,0,1]]) # CV motion model
+        [0,0,0,1]])
+    # motion noise
     Q = np.array([
         [0.16,0,0,0],
         [0,0.36,0,0],
         [0,0,0.16,0],
-        [0,0,0,0.36]]) # motion noise
+        [0,0,0,0.36]])
+    # Cartesian observation model
     H = np.array([
         [1,0,0,0],
-        [0,0,1,0]]) # Cartesian observation model
+        [0,0,1,0]])
+    # observation noise
     R = np.array([
         [0.25, 0],
-        [0, 0.25]]) # observation noise
+        [0, 0.25]])
     # fmt: on
 
     x = np.array([u[0], 0, v[0], 0]).transpose()
@@ -88,7 +91,7 @@ def kalmanTracking(z, dt=0.5):
         s[:, i] = x
         # save current state
 
-    px = s[0, :]  # NOTE: s(2, :) and s(4, :), not considered here,
+    px = s[0, :]  # NOTE: s(1, :) and s(3, :), not considered here,
     py = s[2, :]
 
     return px, py

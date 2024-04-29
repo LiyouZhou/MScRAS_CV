@@ -12,6 +12,7 @@
   frame=single,
 }
 \usepackage{array}
+\usepackage{amsmath}
 
 \newenvironment{conditions}
   {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
@@ -186,13 +187,72 @@ Where:
 \begin{figure}
     \centering
     \includegraphics[width=\columnwidth]{kalman_filter_error_hist.png}
-    \caption{Kalman filter applied to the noisy observations with default Q and R values, Histogram of squared error when compared to ground truth.}
+    \caption{Kalman filter applied to the noisy observations with default Q and R values, Histogram of squared error (difference between filtered value and ground truth) when compared to ground truth.}
     \label{fig:kalman_filter_error_hist}
 \end{figure}
 
 
-It can be seen the filtered trajectory track very close to the Noisy observations. Increasing the observation noise R will decrease the confidence in the observations and the filtered trajectory will be dragged less towards the observations at each iteration.
+It can be seen the filtered trajectory track very close to the Noisy observations. 
+Observation error (difference between ground truth and observations) is calculated at each time step and the distribution is shown in Fig.~\ref{fig:observation_error_hist}. The standard deviation for both x and y is just above 5 and the mean is -1.1 for the x error and -0.61 for the y error. In the Kalman filter, the error is modelled a Gaussian noise with mean 0 and covariance R. Increasing the R will decrease the confidence in the observations and the filtered trajectory will be dragged less towards the observations at each iteration. If we set
 
+\[R = \begin{bmatrix} 
+    10 & 0 \\
+    0 & 10 \\
+\end{bmatrix}\]
+
+and re-plot the above graph (Fig.~\ref{fig:kalman_filter_larger_obs_noise}), it can be seen that filtered value react more slowly to new observations and tend more to follow the motion model. This, however, did not reduce the RMSE, which is now 16.4. There need to be a balance between following the process and following the observations. There is also evidence that the observation noise should not be the same in the x and y direction. The errors in x tends to be larger.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{observation_error_hist.png}
+    \caption{Histogram of observation error (difference between observation and ground truth) in x and y}
+    \label{fig:observation_error_hist}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{kalman_filter_larger_obs_noise.png}
+    \caption{Kalman filter applied to the noisy observations with \(R = \begin{bmatrix} 
+        10 & 0 \\
+        0 & 10 \\
+    \end{bmatrix}\)}
+    \label{fig:kalman_filter_larger_obs_noise}
+\end{figure}
+
+Acceleration is calculated for the ground truth data and the histogram is shown in Fig.~\ref{fig:acceleration_hist}. Acceleration sits between -17 and 17. In the Kalman filter the motion model used assumes constant velocity. As each timestep is \(dt=0.5s\), if the acceleration is \(a = 17 m/s^2\), the velocity will change by \(a \times dt = 8.5m/s\). This acceleration is only accounted for by the process noise Q. If the acceleration is higher than the process noise, the filter will not be able to track the object accurately. There is also strong evidence that the process noise should not be the same in the x and y direction as the acceleration tends to be higher in the y direction.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{acceleration_hist.png}
+    \caption{Histogram of accelerations in x and y in the ground truth}
+    \label{fig:acceleration_hist}
+\end{figure}
+
+Keeping the assumption that the noise in x and y are independent of each other, i.e. keeping Q and R diagonal, an optimization algorithm is used to tune the diagonal values to achieve the lowest RMSE. The final Q and R values are:
+
+\begin{equation}
+R = \begin{bmatrix} 
+    0.29 & 0    \\
+    0    & 0.89 \\
+\end{bmatrix}\ and\ Q = \begin{bmatrix} 
+    0 & 0    & 0    & 0    \\
+    0 & 0.56 & 0    & 0    \\
+    0 & 0    & 0.15 & 0    \\
+    0 & 0    & 0    & 0.02 \\
+\end{bmatrix}
+\end{equation}
+
+The RMSE is 5.24 which is 10.7\% lower than when using the default values. The filtered trajectory is shown in Fig.~\ref{fig:kalman_filter_optimized}. It can be seen that it achieve a balance between following the observations and the process model.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{kalman_filter_optimized.png}
+    \caption{Kalman filter applied to the noisy observations with optimized Q and R values.}
+    \label{fig:kalman_filter_optimized}
+\end{figure}
+
+Ultimately, the Kalman filter is a linear model and is not able to account for the non-linear motion of the balls. If Extended Kalman filter or Unscented Kalman filter is used, a non-linear process model can be used such as constant acceleration model, the RMSE may be further reduced.
 
 \printbibliography
 
