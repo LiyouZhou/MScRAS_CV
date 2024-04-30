@@ -14,6 +14,9 @@
 \usepackage{array}
 \usepackage{amsmath}
 \usepackage{placeins}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \newenvironment{conditions}
   {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
@@ -41,36 +44,49 @@ The code for the pipeline task is shown in Appendix~\ref{sec:app_task1}.
 
 The tennis ball is of a bright yellow color, which is unique in the image. Therefore, this information can be used to segment the tennis ball. The image is first transformed into HSV space. The color is expressed solely by the hue channel, tight threshold can be applied on the hue channel but allow variation in the saturation and value to achieve lighting invariance.
 
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{yellow_ball_mask_seq.png}
+    \caption{Color mask applied to several frames.}
+    \label{fig:color_mask}
+\end{wrapfigure}
+
 After thresholding, there are still some noise. Opening and closing are applied to remove the noise and fill the gaps. Finally, a connected component analysis is applied and only the largest connected component is returned as the mask.
 
 Fig. \ref{fig:color_mask} shows the result of the color mask over several frames. It can be seen that it segments the tennis ball very well.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth]{yellow_ball_mask_seq.png}
-    \caption{Color mask applied to several frames.}
-    \label{fig:color_mask}
-\end{figure}
+
 
 \subsection{Edge Mask}
 
 The edge mask is obtained by first applying the Canny edge detector to the image. The edge detected is shown in Fig. \ref{fig:edge_mask}.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth]{edge_detection.png}
-    \caption{Canny edge detector applied to one of the frames}
-    \label{fig:edge_mask}
-\end{figure}
-
 Many iterations of closing are applied to close the gaps and many iterations of opening is used to remove noise. The result is shown in Fig. \ref{fig:morph_mask}.
 
-\begin{figure}[ht]
+\begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{morph_mask.png}
-    \caption{Edge mask after closing and opening}
-    \label{fig:morph_mask}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{edge_detection.png}
+        \caption{Canny edge detector on one frames}
+        \label{fig:edge_mask}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{morph_mask.png}
+        \caption{Edge mask after closing and opening}
+        \label{fig:morph_mask}
+    \end{subfigure}
+    \caption{Edge Mask}
+    \label{fig:edge_masks}
 \end{figure}
+
+\begin{wrapfigure}{r}{.5\textwidth}
+    \centering
+    \includegraphics[width=0.5\textwidth]{motion_mask.png}
+    \caption{Motion mask applied to one of the frames}
+    \label{fig:motion_mask}
+\end{wrapfigure}
 
 It can be seen the balls are well masked. But there is also large areas of false positives on the top half of the image. In the next section, a region of interest is devised to remove most of the false positive pixels.
 
@@ -78,38 +94,31 @@ It can be seen the balls are well masked. But there is also large areas of false
 
 In the dataset images, only the balls are moving across the image while the rest of the image stay still. I use the difference of pixels in adjacent images to detect a region of interest just around the balls. The result is shown in Fig. \ref{fig:motion_mask}. I first calculate the absolute difference of pixel values in adjacent frames, then I use opening and closing to de-noise and fill gaps. The resultant mask is then dilated to allow for better coverage of the balls.
 
-\begin{figure}[ht]
-    \centering
-    \includegraphics[width=0.8\textwidth]{motion_mask.png}
-    \caption{Motion mask applied to one of the frames}
-    \label{fig:motion_mask}
-\end{figure}
-
 \subsection{Combining Masks}
 
 The color mask and edge masked are ``OR"ed together, then ``AND"ed with the motion mask to produce the final mask. Some example segmented frames can be seen in Fig~\ref{fig:best_dice_score_1} and Appendix~\ref{sec:app_task1}.
 
-\begin{figure}[ht]
+\begin{wrapfigure}{r}{.5\textwidth}
     \centering
-    \includegraphics[width=0.8\columnwidth]{best_dice_score_1.png}
+    \includegraphics[width=.5\textwidth]{best_dice_score_1.png}
     \caption{Best dice score frame. Green circle indicates the ground truth segmentation mask.}
     \label{fig:best_dice_score_1}
-\end{figure}
+\end{wrapfigure}
 
 \section{Evaluation and Discussion}
 
 Dice score is calculated to evaluate the segmentation. The mean dice score is 0.850 and standard deviation of 0.0891. Fig. \ref{fig:dice_score} shows the score for each frame and Fig. \ref{fig:dice_score_hist} shows the distribution of the scores.
 
-\begin{figure}[ht]
+\begin{figure}
     \centering
-    \includegraphics[width=0.8\columnwidth]{dice_score.png}
+    \includegraphics[width=0.7\columnwidth]{dice_score.png}
     \caption{Dice score for each frame}
     \label{fig:dice_score}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}
     \centering
-    \includegraphics[width=0.8\columnwidth]{dice_score_hist.png}
+    \includegraphics[width=0.7\columnwidth]{dice_score_hist.png}
     \caption{Histogram of dice scores}
     \label{fig:dice_score_hist}
 \end{figure}
@@ -136,7 +145,7 @@ After obtaining the ground truth shape mask for each individual ball types, shap
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.8\columnwidth]{shape_features_hist.png}
+    \includegraphics[width=0.7\columnwidth]{shape_features_hist.png}
     \caption{Histogram different shape features}
     \label{fig:shape_features_hist}
 \end{figure}
@@ -146,17 +155,20 @@ After obtaining the ground truth shape mask for each individual ball types, shap
 The normalized grey-level co-occurrence matrix in four orientations (0°, 45°, 90°, 135°) are calculated for the three ball types and for each r, g, b channels of the images. 3 texture features are then calculated for each of the co-occurrence matrices. The mean and range of the features across the 4 angles is calculated. A histogram is plotted for the mean and range of the features in each color channels. ASM features are produced in Fig~\ref{fig:texture_features} as it shows the most disparity between ball types. Plots for other color feature pairs are produced in Appendix~\ref{sed:app_task_2}.
 
 \begin{figure}[ht]
-    \includegraphics[width=0.8\columnwidth]{r_ASM.png}
+    \centering
+    \includegraphics[width=0.9\columnwidth]{r_ASM.png}
     \label{fig:r_ASM}
 \end{figure}
 
 \begin{figure}[ht]
-    \includegraphics[width=0.8\columnwidth]{g_ASM.png}
+    \centering
+    \includegraphics[width=0.9\columnwidth]{g_ASM.png}
     \label{fig:g_ASM}
 \end{figure}
 
 \begin{figure}[ht]
-    \includegraphics[width=0.8\columnwidth]{b_ASM.png}
+    \centering
+    \includegraphics[width=0.9\columnwidth]{b_ASM.png}
     \label{fib:g_ASM}
 \end{figure}
 
