@@ -13,6 +13,7 @@
 }
 \usepackage{array}
 \usepackage{amsmath}
+\usepackage{placeins}
 
 \newenvironment{conditions}
   {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
@@ -34,11 +35,13 @@
 
 \section{Segmentation Pipeline}
 
+The code for the pipeline task is shown in Appendix~\ref{sec:app_task1}.
+
 \subsection{Color Mask}
 
 The tennis ball is of a bright yellow color, which is unique in the image. Therefore, this information can be used to segment the tennis ball. The image is first transformed into HSV space. The color is expressed solely by the hue channel, tight threshold can be applied on the hue channel but allow variation in the saturation and value to achieve lighting invariance.
 
-After thresholding, there are still some noise. Opening and closing are applied to remove the noise and fill the gaps. Finally a connected component analysis is applied and only the largest connected component is returned as the mask.
+After thresholding, there are still some noise. Opening and closing are applied to remove the noise and fill the gaps. Finally, a connected component analysis is applied and only the largest connected component is returned as the mask.
 
 Fig. \ref{fig:color_mask} shows the result of the color mask over several frames. It can be seen that it segments the tennis ball very well.
 
@@ -53,7 +56,7 @@ Fig. \ref{fig:color_mask} shows the result of the color mask over several frames
 
 The edge mask is obtained by first applying the Canny edge detector to the image. The edge detected is shown in Fig. \ref{fig:edge_mask}.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{edge_detection.png}
     \caption{Canny edge detector applied to one of the frames}
@@ -62,7 +65,7 @@ The edge mask is obtained by first applying the Canny edge detector to the image
 
 Many iterations of closing are applied to close the gaps and many iterations of opening is used to remove noise. The result is shown in Fig. \ref{fig:morph_mask}.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{morph_mask.png}
     \caption{Edge mask after closing and opening}
@@ -75,7 +78,7 @@ It can be seen the balls are well masked. But there is also large areas of false
 
 In the dataset images, only the balls are moving across the image while the rest of the image stay still. I use the difference of pixels in adjacent images to detect a region of interest just around the balls. The result is shown in Fig. \ref{fig:motion_mask}. I first calculate the absolute difference of pixel values in adjacent frames, then I use opening and closing to de-noise and fill gaps. The resultant mask is then dilated to allow for better coverage of the balls.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{motion_mask.png}
     \caption{Motion mask applied to one of the frames}
@@ -84,27 +87,36 @@ In the dataset images, only the balls are moving across the image while the rest
 
 \subsection{Combining Masks}
 
-The color mask and edge masked are "OR"ed together, the "AND"ed with the motion mask to produce the final mask. Some example segmented frames can be seen in Appendix~\ref{sec:app_task1}.
+The color mask and edge masked are ``OR"ed together, then ``AND"ed with the motion mask to produce the final mask. Some example segmented frames can be seen in Fig~\ref{fig:best_dice_score_1} and Appendix~\ref{sec:app_task1}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{best_dice_score_1.png}
+    \caption{Best dice score frame. Green circle indicates the ground truth segmentation mask.}
+    \label{fig:best_dice_score_1}
+\end{figure}
 
 \section{Evaluation and Discussion}
 
 Dice score is calculated to evaluate the segmentation. The mean dice score is 0.850 and standard deviation of 0.0891. Fig. \ref{fig:dice_score} shows the score for each frame and Fig. \ref{fig:dice_score_hist} shows the distribution of the scores.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{dice_score.png}
+    \includegraphics[width=0.8\columnwidth]{dice_score.png}
     \caption{Dice score for each frame}
     \label{fig:dice_score}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{dice_score_hist.png}
+    \includegraphics[width=0.8\columnwidth]{dice_score_hist.png}
     \caption{Histogram of dice scores}
     \label{fig:dice_score_hist}
 \end{figure}
 
 \chapter*{Task 2: Feature Calculation}
+
+The code to solve this task is shown in Appendix~\ref{sec:app_task_2}.
 
 \section{Separating ball masks}
 
@@ -122,9 +134,9 @@ The following properties of the balls are exploited:
 
 After obtaining the ground truth shape mask for each individual ball types, shape features (solidity, non-compactness, circularity, eccentricity) are calculated for each ball type and histogram of the feature values is plotted for each ball type in Fig.~\ref{fig:shape_features_hist}.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{shape_features_hist.png}
+    \includegraphics[width=0.8\columnwidth]{shape_features_hist.png}
     \caption{Histogram different shape features}
     \label{fig:shape_features_hist}
 \end{figure}
@@ -133,18 +145,18 @@ After obtaining the ground truth shape mask for each individual ball types, shap
 
 The normalized grey-level co-occurrence matrix in four orientations (0°, 45°, 90°, 135°) are calculated for the three ball types and for each r, g, b channels of the images. 3 texture features are then calculated for each of the co-occurrence matrices. The mean and range of the features across the 4 angles is calculated. A histogram is plotted for the mean and range of the features in each color channels. ASM features are produced in Fig~\ref{fig:texture_features} as it shows the most disparity between ball types. Plots for other color feature pairs are produced in Appendix~\ref{sed:app_task_2}.
 
-\begin{figure}
-    \includegraphics[width=\columnwidth]{r_ASM.png}
+\begin{figure}[ht]
+    \includegraphics[width=0.8\columnwidth]{r_ASM.png}
     \label{fig:r_ASM}
 \end{figure}
 
-\begin{figure}
-    \includegraphics[width=\columnwidth]{g_ASM.png}
+\begin{figure}[ht]
+    \includegraphics[width=0.8\columnwidth]{g_ASM.png}
     \label{fig:g_ASM}
 \end{figure}
 
-\begin{figure}
-    \includegraphics[width=\columnwidth]{b_ASM.png}
+\begin{figure}[ht]
+    \includegraphics[width=0.8\columnwidth]{b_ASM.png}
     \label{fib:g_ASM}
 \end{figure}
 
@@ -172,21 +184,21 @@ With the Q and R values provided in the task, the Kalman filter is applied to th
 \end{equation}
 Where:
 \begin{conditions}
- x_{i} y_{i}             & the ground truth coordinate values \\
- \hat{x}_{i} \hat{y}_{i} & the filtered coordinate values \\
+ x_{i},\ y_{i}             & the ground truth coordinate values \\
+ \hat{x}_{i},\ \hat{y}_{i} & the filtered coordinate values \\
  N                       & the number of points
 \end{conditions}
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{kalman_filter_default_values.png}
+    \includegraphics[width=0.8\columnwidth]{kalman_filter_default_values.png}
     \caption{Kalman filter applied to the noisy observations with default Q and R values.}
     \label{fig:kalman_filter_default_values}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{kalman_filter_error_hist.png}
+    \includegraphics[width=0.8\columnwidth]{kalman_filter_error_hist.png}
     \caption{Kalman filter applied to the noisy observations with default Q and R values, Histogram of squared error (difference between filtered value and ground truth) when compared to ground truth.}
     \label{fig:kalman_filter_error_hist}
 \end{figure}
@@ -203,16 +215,16 @@ Observation error (difference between ground truth and observations) is calculat
 and re-plot the above graph (Fig.~\ref{fig:kalman_filter_larger_obs_noise}), it can be seen that filtered value react more slowly to new observations and tend more to follow the motion model. This, however, did not reduce the RMSE, which is now 16.4. There need to be a balance between following the process and following the observations. There is also evidence that the observation noise should not be the same in the x and y direction. The errors in x tends to be larger.
 
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{observation_error_hist.png}
+    \includegraphics[width=0.8\columnwidth]{observation_error_hist.png}
     \caption{Histogram of observation error (difference between observation and ground truth) in x and y}
     \label{fig:observation_error_hist}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{kalman_filter_larger_obs_noise.png}
+    \includegraphics[width=0.8\columnwidth]{kalman_filter_larger_obs_noise.png}
     \caption{Kalman filter applied to the noisy observations with \(R = \begin{bmatrix} 
         10 & 0 \\
         0 & 10 \\
@@ -220,11 +232,11 @@ and re-plot the above graph (Fig.~\ref{fig:kalman_filter_larger_obs_noise}), it 
     \label{fig:kalman_filter_larger_obs_noise}
 \end{figure}
 
-Acceleration is calculated for the ground truth data and the histogram is shown in Fig.~\ref{fig:acceleration_hist}. Acceleration sits between -17 and 17. In the Kalman filter the motion model used assumes constant velocity. As each timestep is \(dt=0.5s\), if the acceleration is \(a = 17 m/s^2\), the velocity will change by \(a \times dt = 8.5m/s\). This acceleration is only accounted for by the process noise Q. If the acceleration is higher than the process noise, the filter will not be able to track the object accurately. There is also strong evidence that the process noise should not be the same in the x and y direction as the acceleration tends to be higher in the y direction.
+Acceleration is calculated for the ground truth data and the histogram is shown in Fig.~\ref{fig:acceleration_hist}. Acceleration sits between -17 and 17. In the Kalman filter the motion model used assumes constant velocity. As each time step is \(dt=0.5s\), if the acceleration is \(a = 17 m/s^2\), the velocity will change by \(a \times dt = 8.5m/s\). This acceleration is only accounted for by the process noise Q. If the acceleration is higher than the process noise, the filter will not be able to track the object accurately. There is also strong evidence that the process noise should not be the same in the x and y direction as the acceleration tends to be higher in the y direction.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{acceleration_hist.png}
+    \includegraphics[width=0.8\columnwidth]{acceleration_hist.png}
     \caption{Histogram of accelerations in x and y in the ground truth}
     \label{fig:acceleration_hist}
 \end{figure}
@@ -245,9 +257,9 @@ R = \begin{bmatrix}
 
 The RMSE is 5.24 which is 10.7\% lower than when using the default values. The filtered trajectory is shown in Fig.~\ref{fig:kalman_filter_optimized}. It can be seen that it achieve a balance between following the observations and the process model.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\columnwidth]{kalman_filter_optimized.png}
+    \includegraphics[width=0.8\columnwidth]{kalman_filter_optimized.png}
     \caption{Kalman filter applied to the noisy observations with optimized Q and R values.}
     \label{fig:kalman_filter_optimized}
 \end{figure}
@@ -352,6 +364,5 @@ Ultimately, the Kalman filter is a linear model and is not able to account for t
 \lstinputlisting[language=python]{../code/task3.py}
 
 \end{appendices}
-
 
 \end{document}
