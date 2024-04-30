@@ -19,6 +19,66 @@
 \usepackage{subcaption}
 \usepackage{cleveref}
 
+% color def
+\usepackage{color}
+\definecolor{darkred}{rgb}{0.6,0.0,0.0}
+\definecolor{darkgreen}{rgb}{0,0.50,0}
+\definecolor{lightblue}{rgb}{0.0,0.42,0.91}
+\definecolor{orange}{rgb}{0.99,0.48,0.13}
+\definecolor{grass}{rgb}{0.18,0.80,0.18}
+\definecolor{pink}{rgb}{0.97,0.15,0.45}
+
+% listings
+\usepackage{listings}
+
+% General Setting of listings
+\lstset{
+  aboveskip=1em,
+  breaklines=true,
+  abovecaptionskip=-6pt,
+  captionpos=b,
+  escapeinside={\%*}{*)},
+  frame=single,
+  numbers=left,
+  numbersep=15pt,
+  numberstyle=\tiny,
+}
+% 0. Basic Color Theme
+\lstdefinestyle{colored}{ %
+  basicstyle=\ttfamily,
+  backgroundcolor=\color{white},
+  commentstyle=\color{green}\itshape,
+  keywordstyle=\color{blue}\bfseries\itshape,
+  stringstyle=\color{red},
+}
+% 1. General Python Keywords List
+\lstdefinelanguage{PythonPlus}[]{Python}{
+  morekeywords=[1]{,as,assert,nonlocal,with,yield,self,True,False,None,} % Python builtin
+  morekeywords=[2]{,__init__,__add__,__mul__,__div__,__sub__,__call__,__getitem__,__setitem__,__eq__,__ne__,__nonzero__,__rmul__,__radd__,__repr__,__str__,__get__,__truediv__,__pow__,__name__,__future__,__all__,}, % magic methods
+  morekeywords=[3]{,object,type,isinstance,copy,deepcopy,zip,enumerate,reversed,list,set,len,dict,tuple,range,xrange,append,execfile,real,imag,reduce,str,repr,}, % common functions
+  morekeywords=[4]{,Exception,NameError,IndexError,SyntaxError,TypeError,ValueError,OverflowError,ZeroDivisionError,}, % errors
+  morekeywords=[5]{,ode,fsolve,sqrt,exp,sin,cos,arctan,arctan2,arccos,pi, array,norm,solve,dot,arange,isscalar,max,sum,flatten,shape,reshape,find,any,all,abs,plot,linspace,legend,quad,polyval,polyfit,hstack,concatenate,vstack,column_stack,empty,zeros,ones,rand,vander,grid,pcolor,eig,eigs,eigvals,svd,qr,tan,det,logspace,roll,min,mean,cumsum,cumprod,diff,vectorize,lstsq,cla,eye,xlabel,ylabel,squeeze,}, % numpy / math
+}
+% 2. New Language based on Python
+\lstdefinelanguage{PyBrIM}[]{PythonPlus}{
+  emph={d,E,a,Fc28,Fy,Fu,D,des,supplier,Material,Rectangle,PyElmt},
+}
+% 3. Extended theme
+\lstdefinestyle{colorEX}{
+  basicstyle=\ttfamily,
+  backgroundcolor=\color{white},
+  commentstyle=\color{darkgreen}\slshape,
+  keywordstyle=\color{blue}\bfseries\itshape,
+  keywordstyle=[2]\color{blue}\bfseries,
+  keywordstyle=[3]\color{grass},
+  keywordstyle=[4]\color{red},
+  keywordstyle=[5]\color{orange},
+  stringstyle=\color{darkred},
+  emphstyle=\color{pink}\underbar,
+}
+
+\lstset{style=colorEX}
+
 \newenvironment{conditions}
   {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
   {\end{tabular}\par\vspace{\belowdisplayskip}}
@@ -290,6 +350,7 @@ Ultimately, the Kalman filter is a linear model and is not able to account for t
 
 \chapter{Task 1: Image Segmentation and Detection}\label{sec:app_task1}
 
+\section{5 Best and 5 Worst Dice Score Frames}
 
 \begin{figure}
     \centering
@@ -345,41 +406,50 @@ Ultimately, the Kalman filter is a linear model and is not able to account for t
 
 \pagebreak
 
-\lstinputlisting[language=python]{../code/task1.py}
+\section{Code Listing for Task 1}
+
+\lstinputlisting[language=PyBrIM]{../code/task1.py}
 
 \chapter{Task 2: Feature Calculation}\label{sec:app_task_2}
 
+\section{Extra Texture Feature/Color Channel Plots}
+
 \begin{figure}
-    \includegraphics[width=\columnwidth]{r_contrast.png}
+    \includegraphics[width=0.8\columnwidth]{r_contrast.png}
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=\columnwidth]{r_correlation.png}
+    \includegraphics[width=0.8\columnwidth]{r_correlation.png}
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=\columnwidth]{g_contrast.png}
+    \includegraphics[width=0.8\columnwidth]{g_contrast.png}
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=\columnwidth]{g_correlation.png}
+    \includegraphics[width=0.8\columnwidth]{g_correlation.png}
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=\columnwidth]{b_contrast.png}
+    \includegraphics[width=0.8\columnwidth]{b_contrast.png}
 \end{figure}
 
 \begin{figure}
-    \includegraphics[width=\columnwidth]{b_correlation.png}
+    \includegraphics[width=0.8\columnwidth]{b_correlation.png}
 \end{figure}
 
 \pagebreak
 
-\lstinputlisting[language=python]{../code/task2.py}
+\section{Code Listing for Task 2}
+
+
+\lstinputlisting[language=PyBrIM]{../code/task2.py}
 
 \chapter{Task 3: Object Tracking} \label{sec:app_task3}
 
-\lstinputlisting[language=python]{../code/task3.py}
+\section{Code Listing for Task 3}
+
+\lstinputlisting[language=PyBrIM]{../code/task3.py}
 
 \end{appendices}
 
