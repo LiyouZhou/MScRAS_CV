@@ -109,6 +109,8 @@ The color mask and edge masked are ``OR"ed together, then ``AND"ed with the moti
 
 Dice score is calculated to evaluate the segmentation. The mean dice score is 0.850 and standard deviation of 0.0891. Fig. \ref{fig:dice_score} shows the score for each frame and Fig. \ref{fig:dice_score_hist} shows the distribution of the scores.
 
+Appendix~\ref{sec:app_task1} show the 5 best and 5 worst frames. Looking at the worst frames, it looks like spurious patches that are not balls started to appear in the motion mask, reducing the dice score. The color of the rugby ball blends into that of the floor making the edge detection fail, further reducing the dice score.
+
 \begin{figure}
     \centering
     \includegraphics[width=0.7\columnwidth]{dice_score.png}
