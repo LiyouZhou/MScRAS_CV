@@ -1,16 +1,7 @@
 from glob import glob
 import cv2
 from matplotlib import pyplot as plt
-import time
-
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.ndimage import gaussian_filter
-from skimage.data import coins
-from skimage.transform import rescale
-
-from sklearn.cluster import spectral_clustering
-from sklearn.feature_extraction import image
 
 # get a list of ball images and ground truth images
 ball_frame_gt_files = glob("ball_frames/*GT.png")
@@ -172,7 +163,7 @@ if __name__ == "__main__":
         ax.title.set_text(f"i: {idx}, DS: {DS:.2f}")
 
     # print the mean and std of the Dice Similarity scores
-    print(np.mean(DSs), np.std(DSs))
+    print(f"DS mean: {np.mean(DSs):.03f}, {np.std(DSs):.03f}")
 
     # remove the x and y ticks
     for ax in axs:

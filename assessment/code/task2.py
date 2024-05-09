@@ -4,12 +4,20 @@ from glob import glob
 import cv2
 from matplotlib import pyplot as plt
 import numpy as np
+import seaborn as sns
 
-ball_frame_gt_files = glob('ball_frames/*GT.png')
-ball_frame_files = [f for f in glob('ball_frames/*.png') if f not in ball_frame_gt_files]
+ball_frame_gt_files = glob("ball_frames/*GT.png")
+ball_frame_files = [
+    f for f in glob("ball_frames/*.png") if f not in ball_frame_gt_files
+]
 
-ball_frame_gt_files.sort(key=lambda x: int(x.split('/')[-1].split('_')[0].split(".")[0].split("-")[1]))
-ball_frame_files.sort(key=lambda x: int(x.split('/')[-1].split('_')[0].split(".")[0].split("-")[1]))
+ball_frame_gt_files.sort(
+    key=lambda x: int(x.split("/")[-1].split("_")[0].split(".")[0].split("-")[1])
+)
+ball_frame_files.sort(
+    key=lambda x: int(x.split("/")[-1].split("_")[0].split(".")[0].split("-")[1])
+)
+
 
 def get_gt_mask(idx):
     """
@@ -20,6 +28,7 @@ def get_gt_mask(idx):
     gt_mask = gt_mask.astype(np.uint8)
     gt_mask = (1 * (gt_mask > 50)).astype(np.uint8)
     return gt_mask
+
 
 ball_features = {}
 ball_names = ["tennis", "football", "rugby"]
@@ -45,7 +54,7 @@ for i in range(len(ball_frame_files)):
     mask = get_gt_mask(i)
 
     # separate masks for the 3 ball types
-    
+
     # connected component analysis
     label, num_features = scipy.ndimage.label(mask)
 
@@ -112,6 +121,9 @@ for i in range(len(ball_frame_files)):
                 )
                 ball_features[ball_name]["ASM"][channel_name][a].append(ASM[0, i])
 
+fig, axes = plt.subplots(2, 2, figsize=(6, 6))
+axes = axes.flatten()
+
 for j, feature in enumerate(
     ["solidity", "circularity", "non_compactness", "eccentricity"]
 ):
@@ -119,16 +131,12 @@ for j, feature in enumerate(
         [ball_features[ball][feature] for ball in ball_names], label=ball_names
     )
     axes[j].set_title(f"{feature}")
-    # axes[j].legend()
 
 handles, labels = plt.gca().get_legend_handles_labels()
 plt.figlegend(
     labels, loc="lower center", labelspacing=0.0, ncol=3, bbox_to_anchor=(0.5, -0.05)
 )
 plt.tight_layout()
-plt.savefig("../report/figures/shape_features_hist.png")
-
-import seaborn as sns
 
 colors = sns.color_palette()
 
@@ -154,27 +162,21 @@ for c in ["r", "g", "b"]:
 
         fig, axes = plt.subplots(1, 2)
         data = [x[0] for x in texture_features_data]
-        axes[0].hist(
-            data,
-            label=ball_names,
-            # color=[colors[3], colors[2], colors[0]],
-            alpha=0.8
-        )
+        axes[0].hist(data, label=ball_names, alpha=0.8)
         axes[0].set_xlabel("Mean")
 
-
-        axes[1].hist(
-            [x[1] for x in texture_features_data],
-            label=ball_names,
-            # color=[colors[3], colors[2], colors[0]],
-            alpha=0.8
-        )
+        axes[1].hist([x[1] for x in texture_features_data], label=ball_names, alpha=0.8)
         axes[1].set_xlabel("Range")
 
         fig.suptitle(f"Channel: {c} Feature: {feature}")
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.figlegend(
-            labels, loc="lower center", labelspacing=0.0, ncol=3, bbox_to_anchor=(0.5, -0.05)
+            labels,
+            loc="lower center",
+            labelspacing=0.0,
+            ncol=3,
+            bbox_to_anchor=(0.5, -0.05),
         )
         plt.tight_layout()
-        plt.savefig(f"../report/figures/{c}_{feature}.png", bbox_inches='tight')
+
+plt.show()
