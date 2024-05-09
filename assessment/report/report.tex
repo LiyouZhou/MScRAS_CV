@@ -85,6 +85,14 @@
 
 \setlength{\abovecaptionskip}{5pt}
 
+\usepackage[a4paper,
+    bindingoffset=0in,
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in,
+    footskip=.25in]{geometry}
+
 \graphicspath{{./figures/}}
 \addbibresource{CV.bib} %Import the bibliography file
 
@@ -124,7 +132,7 @@ The edge mask is obtained by first applying the Canny edge detector\cite{cannyCo
 
 Many iterations of closing are applied to close the gaps and many iterations of opening is used to remove noise. The result is shown in Fig. \ref{fig:morph_mask}.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
@@ -159,12 +167,12 @@ In the dataset images, only the balls are moving across the image while the rest
 
 The color mask and edge masked are ``OR"ed together, then ``AND"ed with the motion mask to produce the final mask. Some example segmented frames can be seen in Fig~\ref{fig:best_dice_score_1} and Appendix~\ref{sec:app_task1}.
 
-\begin{wrapfigure}{r}{.5\textwidth}
+\begin{figure}
     \centering
-    \includegraphics[width=.5\textwidth]{best_dice_score_1.png}
+    \includegraphics[width=.8\textwidth]{best_dice_score_1.png}
     \caption{Best dice score frame. Green circle indicates the ground truth segmentation mask.}
     \label{fig:best_dice_score_1}
-\end{wrapfigure}
+\end{figure}
 
 \section{Evaluation and Discussion}
 
@@ -174,48 +182,46 @@ Appendix~\ref{sec:app_task1} show the 5 best and 5 worst frames. Looking at the 
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\columnwidth]{dice_score.png}
+    \includegraphics[width=0.8\columnwidth]{dice_score.png}
     \caption{Dice score for each frame}
     \label{fig:dice_score}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\columnwidth]{dice_score_hist.png}
+    \includegraphics[width=0.8\columnwidth]{dice_score_hist.png}
     \caption{Histogram of dice scores}
     \label{fig:dice_score_hist}
 \end{figure}
 
-\chapter*{Task 2: Feature Calculation}
+\chapter{Task 2: Feature Calculation}
 
 The code to solve this task is shown in Appendix~\ref{sec:app_task_2}.
 
 \section{Separating ball masks}
 
-In order to distinguish between ball types, it is necessary to separate the single ground truth segmentation mask into 3 different masks, one for each ball type.
-
-The following properties of the balls are exploited:
+In order to distinguish between ball types, it is necessary to separate the single ground truth segmentation mask into 3 different masks, one for each ball type. The following properties of the balls are exploited:
 
 \begin{itemize}
     \item Tennis is always the smallest in the image.
-    \item Rugby is always the bottom most of the 3 balls.
+    \item Rugby is always the bottom one of the 3 balls.
     \item Football is the one left after removing the other 2 balls.
 \end{itemize}
 
 \section{Shape Features}
 
-After obtaining the ground truth shape mask for each individual ball types, shape features (solidity, non-compactness\cite{westenbergVolumetricAttributeFiltering2007,bosiljConnectedAttributeMorphology2018}, circularity\cite{zunicHuMomentInvariant2010}, eccentricity) are calculated for each ball type and histogram of the feature values is plotted for each ball type in Fig.~\ref{fig:shape_features_hist}.
+After obtaining the ground truth shape mask for each individual ball types, shape features (solidity, non-compactness\cite{westenbergVolumetricAttributeFiltering2007,bosiljConnectedAttributeMorphology2018}, circularity\cite{zunicHuMomentInvariant2010}, eccentricity) are calculated for each ball type and histogram of the feature values is plotted in Fig.~\ref{fig:shape_features_hist}.
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.7\columnwidth]{shape_features_hist.png}
-    \caption{Histogram different shape features}
+    \includegraphics[width=0.9\columnwidth]{shape_features_hist.png}
+    \caption{Histogram of different shape features}
     \label{fig:shape_features_hist}
 \end{figure}
 
 \section{Texture Features}
 
-The normalized grey-level co-occurrence matrix in four orientations (0°, 45°, 90°, 135°) are calculated for the three ball types and for each r, g, b channels of the images. 3 texture features are then calculated for each of the co-occurrence matrices. The mean and range of the features across the 4 angles is calculated. A histogram is plotted for the mean and range of the features in each color channels. ASM features are produced in Fig~\cref{fig:r_ASM,fig:g_ASM,fig:b_ASM} as it shows the most disparity between ball types. Plots for other color feature pairs are produced in Appendix~\ref{sec:app_task_2}.
+The normalized grey-level co-occurrence matrix in four orientations (0°, 45°, 90°, 135°) are calculated for the three ball types and for each r, g, b channels of the images. 3 texture features are then calculated for each of the co-occurrence matrices. The mean and range of the features across the 4 angles is calculated. A histogram is plotted for the mean and range of the features in each colour channels across all frames in the dataset. ASM features are shown in Fig~\cref{fig:r_ASM,fig:g_ASM,fig:b_ASM} as it shows the most disparity between ball types. Plots for other colour feature pairs are produced in Appendix~\ref{sec:app_task_2}.
 
 \begin{figure}[ht]
     \centering
@@ -242,13 +248,13 @@ The normalized grey-level co-occurrence matrix in four orientations (0°, 45°, 
 
 In shape features, the rugby ball is fairly distinct from the other 2, especially in circularity (low), eccentricity (high). But due to the change in lens distortion and perspective as the balls roll across the frame, there is a wide spread in the shape features for all ball types.
 
-In texture features, ASM is the most distinct feature between the ball types and in all color channels. In the R channel, The rugby ball has the lowest ASM, while the tennis ball has the highest. This is due to the tennis ball having an almost uniform texture compared to the other 2 balls. Due to the same reason, the rugby ball also has the highest contrast and correlation values. In the G and B channel, due to the color of the rugby being mostly in the R channels, the values for the features are wide-spread.
+In texture features, ASM is the most distinct feature between the ball types and in all colour channels. In the R channel, The rugby ball has the lowest ASM, while the tennis ball has the highest. This is due to the tennis ball having an almost uniform texture compared to the other 2 balls. The ruby ball have non-uniform colour and texture. Hence, it has the highest contrast and correlation values. In the G and B channel, due to the colour of the rugby being mostly in the R channels, the values for the features are wide-spread.
 
 For rugby, shape features appear to be more informative while for the other 2 ball types texture features are better.
 
-Football is the most difficult to distinguish as it is of a bright color and uniform texture, and is hence similar to the tennis in most of the descriptors. Rugby on the other hand is distinct in shape as well as in color.
+Football is the most difficult to distinguish as it is of a bright colour and uniform texture, and is hence similar to the tennis in most of the descriptors. Rugby on the other hand is distinct in shape as well as in colour.
 
-The Hue values of the ball patches in HSV color space could be a good feature to use in distinguishing between football and tennis as they differ significantly in the hue.
+The Hue values of the ball patches in HSV colour space could be a good feature to use in distinguishing between football and tennis as they differ significantly in the hue.
 
 \chapter{Task 3: Object Tracking}
 
@@ -283,14 +289,12 @@ Where:
 
 
 It can be seen the filtered trajectory track very close to the Noisy observations. 
-Observation error (difference between ground truth and observations) is calculated at each time step and the distribution is shown in Fig.~\ref{fig:observation_error_hist}. The standard deviation for both x and y is just above 5 and the mean is -1.1 for the x error and -0.61 for the y error. In the Kalman filter, the error is modelled a Gaussian noise with mean 0 and covariance R. Increasing the R will decrease the confidence in the observations and the filtered trajectory will be dragged less towards the observations at each iteration. If we set R relatively large:
-
+Observation error (difference between ground truth and observations) is calculated at each time step and the distribution is shown in Fig.~\ref{fig:observation_error_hist}. The standard deviation for both x and y is just above 5 and the mean is -1.1 for the x error and -0.61 for the y error. In the Kalman filter, the error is modelled a Gaussian noise with mean 0 and covariance R. Increasing R will decrease the confidence in the observations and the filtered trajectory will be dragged less towards the observations at each iteration. If we set R relatively large:
 \[R = \begin{bmatrix} 
     10 & 0 \\
     0 & 10 \\
 \end{bmatrix}\]
-
-and re-plot the above graph (Fig.~\ref{fig:kalman_filter_larger_obs_noise}), it can be seen that filtered value react more slowly to new observations and tend more to follow the motion model. This, however, did not reduce the RMSE, which is now 16.4. There need to be a balance between following the process and following the observations. There is also evidence that the observation noise should not be the same in the x and y direction. The errors in x tends to be larger.
+and re-plot the above graph (Fig.~\ref{fig:kalman_filter_larger_obs_noise}), it can be seen that filtered value react more slowly to new observations and tend more to follow the motion model. This, however, did not reduce the RMSE, which is now 16.4. There need to be a balance between following the process model and following the observations. There is also evidence that the observation noise should not be the same in the x and y direction. The errors in x tends to be larger.
 
 
 \begin{figure}[ht]
@@ -320,7 +324,6 @@ Acceleration is calculated for the ground truth data and the histogram is shown 
 \end{figure}
 
 Keeping the assumption that the noise in x and y are independent of each other, i.e. keeping Q and R diagonal, an optimization algorithm is used to tune the diagonal values to achieve the lowest RMSE. The final Q and R values are:
-
 \begin{equation}
 R = \begin{bmatrix} 
     0.29 & 0    \\
@@ -332,7 +335,6 @@ R = \begin{bmatrix}
     0 & 0    & 0    & 0.02 \\
 \end{bmatrix}
 \end{equation}
-
 The RMSE is 5.24 which is 10.7\% lower than when using the default values. The filtered trajectory is shown in Fig.~\ref{fig:kalman_filter_optimized}. It can be seen that it achieve a balance between following the observations and the process model.
 
 \begin{figure}[ht]
